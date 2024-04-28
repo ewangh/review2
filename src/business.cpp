@@ -15,33 +15,33 @@ MarkData getMarkData(std::vector<DateData> vec1)
               { return std::mktime(&data1.Date) < std::mktime(&data2.Date); });
 
     MarkData markInfo;
-    DateData prevInfo;
+    DateData* prevInfo{nullptr};
 
     for (DateData &obj : vec1)
     {
-        if (prevInfo.empty())
+        if (prevInfo->empty())
         {
-            prevInfo = obj;
+            prevInfo = &obj;
             std::cout << std::put_time(&obj.Date, "%Y/%m/%d") << std::endl;
             continue;
         }
 
-        obj.Closed = prevInfo.Price;
+        obj.Closed = prevInfo->Price;
 
         if (markInfo.empty())
         {
-            if (prevInfo.isDownLadder(obj.Lower))
+            if (prevInfo->isDownLadder(obj.Lower))
             {
-                markInfo.setBakMark(prevInfo.Opening, prevInfo.Highest, prevInfo.Lower, prevInfo.Price, prevInfo.Volume, prevInfo.Closed, prevInfo.Date);
-                std::cout << "备份 " << std::put_time(&prevInfo.Date, "%Y/%m/%d") << std::endl;
+                markInfo.setBakMark(prevInfo->Opening, prevInfo->Highest, prevInfo->Lower, prevInfo->Price, prevInfo->Volume, prevInfo->Closed, prevInfo->Date);
+                std::cout << "备份 " << std::put_time(&prevInfo->Date, "%Y/%m/%d") << std::endl;
             }
-            else if (!prevInfo.isUpLadder(obj.Highest))
+            else if (!prevInfo->isUpLadder(obj.Highest))
             {
-                markInfo.setMark(prevInfo.Opening, prevInfo.Highest, prevInfo.Lower, prevInfo.Price, prevInfo.Volume, prevInfo.Closed, prevInfo.Date);
+                markInfo.setMark(prevInfo->Opening, prevInfo->Highest, prevInfo->Lower, prevInfo->Price, prevInfo->Volume, prevInfo->Closed, prevInfo->Date);
                 std::cout << "新建 " << std::put_time(&markInfo.Date, "%Y/%m/%d") << std::endl;
             }
         }
-        else if (std::mktime(&prevInfo.Date) > std::mktime(&markInfo.Date))
+        else if (std::mktime(&prevInfo->Date) > std::mktime(&markInfo.Date))
         {
             if (markInfo.isDownLadder(obj.Lower))
             {
@@ -49,15 +49,15 @@ MarkData getMarkData(std::vector<DateData> vec1)
                 markInfo.setBakMark(markInfo.Opening, markInfo.Highest, markInfo.Lower, markInfo.Price, markInfo.Volume, markInfo.Closed, markInfo.Date);
                 markInfo.clear();
             }
-            else if (!markInfo.bakEmpty() && !markInfo.isDownBakLower(prevInfo.Highest) && markInfo.isUpLadder(prevInfo.Highest))
+            else if (!markInfo.bakEmpty() && !markInfo.isDownBakLower(prevInfo->Highest) && markInfo.isUpLadder(prevInfo->Highest))
             {
-                std::cout << "跌破新建 " << std::put_time(&prevInfo.Date, "%Y/%m/%d") << std::endl;
+                std::cout << "跌破新建 " << std::put_time(&prevInfo->Date, "%Y/%m/%d") << std::endl;
                 markInfo.bakClear();
-                markInfo.setMark(prevInfo.Opening, prevInfo.Highest, prevInfo.Lower, prevInfo.Price, prevInfo.Volume, prevInfo.Closed, prevInfo.Date);
+                markInfo.setMark(prevInfo->Opening, prevInfo->Highest, prevInfo->Lower, prevInfo->Price, prevInfo->Volume, prevInfo->Closed, prevInfo->Date);
             }
-            else if (markInfo.isUpLadder(prevInfo.Highest))
+            else if (markInfo.isUpLadder(prevInfo->Highest))
             {
-                markInfo.setMark(prevInfo.Opening, prevInfo.Highest, prevInfo.Lower, prevInfo.Price, prevInfo.Volume, prevInfo.Closed, prevInfo.Date);
+                markInfo.setMark(prevInfo->Opening, prevInfo->Highest, prevInfo->Lower, prevInfo->Price, prevInfo->Volume, prevInfo->Closed, prevInfo->Date);
                 std::cout << "新平 " << std::put_time(&markInfo.Date, "%Y/%m/%d") << std::endl;
             }
             else
@@ -67,7 +67,7 @@ MarkData getMarkData(std::vector<DateData> vec1)
         }
         
         markInfo.setOMark(obj.Opening, obj.Highest, obj.Lower, obj.Price, obj.Volume, obj.Closed, obj.Date);
-        prevInfo = obj;
+        prevInfo = &obj;
     }
     
     return markInfo;
